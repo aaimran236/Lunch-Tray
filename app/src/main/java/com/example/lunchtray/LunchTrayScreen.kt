@@ -17,12 +17,21 @@ package com.example.lunchtray
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -38,7 +47,7 @@ import com.example.lunchtray.ui.SideDishMenuScreen
 import com.example.lunchtray.ui.StartOrderScreen
 
 // Screen enum
-enum class LunchTrayAppScreens(@StringRes title: Int){
+enum class LunchTrayAppScreens(@StringRes val title: Int){
     Start(title=R.string.app_name),
     EntreeMenu(title=R.string.choose_entree),
     SideDishMenu(title=R.string.choose_side_dish),
@@ -46,12 +55,35 @@ enum class LunchTrayAppScreens(@StringRes title: Int){
     Checkout(title=R.string.order_checkout)
 }
 
-// TODO: AppBar
-fun LunchTrayAppBar(){
-
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LunchTrayAppBar(
+    lunchTrayAppScreens: LunchTrayAppScreens,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    TopAppBar(
+        title = { Text(stringResource(id = lunchTrayAppScreens.title)) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        modifier = modifier,
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button)
+                    )
+                }
+            }
+        }
+    )
+}
+
+
 @Composable
 fun LunchTrayApp(
     // Create ViewModel
@@ -62,11 +94,17 @@ fun LunchTrayApp(
     //initialization of backstack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
 
-
+    val currentScreen= LunchTrayAppScreens.valueOf(
+        backStackEntry?.destination?.route ?: LunchTrayAppScreens.Start.name
+    )
 
     Scaffold(
         topBar = {
-            LunchTrayAppBar()
+            LunchTrayAppBar(
+                canNavigateBack = navController.previousBackStackEntry!=null,
+                lunchTrayAppScreens = currentScreen,
+                navigateUp = {navController.navigateUp()}
+            )
         }
     ) { innerPadding ->
         val uiState by viewModel.uiState.collectAsState()
