@@ -56,6 +56,7 @@ fun BaseMenuScreen(
                 selectedItemName = item.name
                 onSelectionChanged(item)
             }
+
             MenuItemRow(
                 item = item,
                 selectedItemName = selectedItemName,
